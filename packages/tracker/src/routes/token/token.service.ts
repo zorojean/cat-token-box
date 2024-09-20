@@ -10,6 +10,7 @@ import {
 import { TxOutEntity } from '../../entities/txOut.entity';
 import { Constants } from '../../common/constants';
 import { BlockService } from '../../services/block/block.service';
+import { TokenStatisticsEntity } from '../../entities/tokenstatistics.entity';
 
 @Injectable()
 export class TokenService {
@@ -19,6 +20,8 @@ export class TokenService {
     private readonly tokenInfoRepository: Repository<TokenInfoEntity>,
     @InjectRepository(TxOutEntity)
     private readonly txOutRepository: Repository<TxOutEntity>,
+    @InjectRepository(TokenStatisticsEntity)
+    private readonly tokenStatisticsEntityRepository: Repository<TokenStatisticsEntity>,
   ) {}
 
   async listAllTokens(offset: number = 0, limit: number = 10) {
@@ -299,6 +302,44 @@ export class TokenService {
     return {
       history: history.map((e) => e.txid),
       trackerBlockHeight: lastProcessedHeight,
+    };
+  }
+
+  async getTokenList(
+      offset: number,
+      limit: number,
+  ) {
+
+    const sql = `select * from token_statistics order by holders desc limit $1 offset $2;`;
+    const countSql = `select count(1) from token_statistics`;
+    const count = await this.tokenStatisticsEntityRepository.count()
+
+    const history = await this.tokenStatisticsEntityRepository.query(sql, [
+      Math.min(
+          limit || Constants.QUERY_PAGING_DEFAULT_LIMIT,
+          Constants.QUERY_PAGING_MAX_LIMIT,
+      ),
+      offset || Constants.QUERY_PAGING_DEFAULT_OFFSET,
+    ]);
+
+    var tokenList = [];;
+    for(var i =0;i < history.length; i++){
+      const token = history[i]
+      const where = { tokenId: token.token_id };
+      const tokenInfo = await this.tokenInfoRepository.findOne({
+        where,
+      });
+      const tokenMint = {
+        ...tokenInfo,
+        info: tokenInfo.rawInfo,
+        supply: parseInt(token.mint, 10),
+        holders: parseInt(token.holders, 10),
+      };
+      tokenList.push(tokenMint);
+    }
+    return {
+      tokens: tokenList,
+      total: count
     };
   }
 }

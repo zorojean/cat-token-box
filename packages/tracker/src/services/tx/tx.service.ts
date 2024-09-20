@@ -21,7 +21,7 @@ import { CatTxError } from '../../common/exceptions';
 import { parseTokenInfo, TaprootPayment } from '../../common/utils';
 import { BlockHeader, TokenInfo } from '../../common/types';
 import { TokenMintEntity } from '../../entities/tokenMint.entity';
-import { getGuardContractInfo } from '@cat-protocol/cat-smartcontracts';
+// import { getGuardContractInfo } from '@cat-protocol/cat-smartcontracts';
 import { LRUCache } from 'lru-cache';
 
 @Injectable()
@@ -46,14 +46,14 @@ export class TxService {
     @InjectRepository(TxEntity)
     private txEntityRepository: Repository<TxEntity>,
   ) {
-    const guardContractInfo = getGuardContractInfo();
-    this.GUARD_PUBKEY = guardContractInfo.tpubkey;
-    this.TRANSFER_GUARD_SCRIPT_HASH =
-      guardContractInfo.contractTaprootMap.transfer.contractScriptHash;
-    this.logger.log(`guard xOnlyPubKey = ${this.GUARD_PUBKEY}`);
-    this.logger.log(
-      `guard transferScriptHash = ${this.TRANSFER_GUARD_SCRIPT_HASH}`,
-    );
+    // const guardContractInfo = getGuardContractInfo();
+    // this.GUARD_PUBKEY = guardContractInfo.tpubkey;
+    // this.TRANSFER_GUARD_SCRIPT_HASH =
+    //   guardContractInfo.contractTaprootMap.transfer.contractScriptHash;
+    // this.logger.log(`guard xOnlyPubKey = ${this.GUARD_PUBKEY}`);
+    // this.logger.log(
+    //   `guard transferScriptHash = ${this.TRANSFER_GUARD_SCRIPT_HASH}`,
+    // );
   }
 
   /**

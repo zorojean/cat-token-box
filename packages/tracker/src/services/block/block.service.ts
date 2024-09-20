@@ -28,9 +28,9 @@ export class BlockService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    await this.processForceReindex();
-    this.daemonProcessBlocks();
-    this.logger.log('daemon process blocks initialized');
+    // await this.processForceReindex();
+    // this.daemonProcessBlocks();
+    // this.logger.log('daemon process blocks initialized');
   }
 
   /**

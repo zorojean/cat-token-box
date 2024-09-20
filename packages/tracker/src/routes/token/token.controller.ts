@@ -7,6 +7,40 @@ import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 export class TokenController {
   constructor(private readonly tokenService: TokenService) {}
 
+
+
+  @Get('list')
+  @ApiTags('token')
+  @ApiOperation({ summary: 'Get token list' })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'paging offset',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'paging limit',
+  })
+  async getTokenList(
+      @Query('offset') offset: number,
+      @Query('limit') limit: number,
+  ) {
+    try {
+
+      const txHistory = await this.tokenService.getTokenList(
+          offset,
+          limit,
+      );
+      return okResponse(txHistory);
+    } catch (e) {
+      return errorResponse(e);
+    }
+  }
+
+
   @Get()
   @ApiTags('token')
   @ApiOperation({ summary: 'List all tokens' })
@@ -27,13 +61,12 @@ export class TokenController {
     @Query('limit') limit: number = 10
   ) {
     try {
-      const tokens = await this.tokenService.listAllTokens(offset, limit);
-      const total = await this.tokenService.countAllTokens();
-      
-      return okResponse({
-        tokens,
-        total
-      });
+
+      const txHistory = await this.tokenService.getTokenList(
+          offset,
+          limit,
+      );
+      return okResponse(txHistory);
     } catch (e) {
       return errorResponse(e);
     }

@@ -18,6 +18,8 @@ import { TxEntity } from './entities/tx.entity';
 import { TxOutEntity } from './entities/txOut.entity';
 import { TokenInfoEntity } from './entities/tokenInfo.entity';
 import { TokenMintEntity } from './entities/tokenMint.entity';
+import { TokenStatisticsEntity } from './entities/tokenstatistics.entity';
+import { JobModule } from './services/job/job.module';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require('dotenv').config();
@@ -37,6 +39,7 @@ require('dotenv').config();
     RpcModule,
     BlockModule,
     TxModule,
+    JobModule,
 
     TypeOrmModule.forRoot({
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -53,6 +56,7 @@ require('dotenv').config();
         TxOutEntity,
         TokenInfoEntity,
         TokenMintEntity,
+        TokenStatisticsEntity,
       ],
       synchronize: true,
       ...(process.env.DATABASE_SSL == 'true'
