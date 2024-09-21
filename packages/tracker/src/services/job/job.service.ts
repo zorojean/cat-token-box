@@ -1,29 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { TxEntity } from '../../entities/tx.entity';
+import { InjectRepository } from '@nestjs/typeorm';
 import {
   DataSource,
-  EntityManager,
-  MoreThanOrEqual,
-  Repository,
+  Repository
 } from 'typeorm';
-import {
-  payments,
-  Transaction,
-  TxInput,
-  TxOutput,
-  crypto,
-} from 'bitcoinjs-lib';
-import { TxOutEntity } from '../../entities/txOut.entity';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Constants } from '../../common/constants';
-import { TokenInfoEntity } from '../../entities/tokenInfo.entity';
-import { CatTxError } from '../../common/exceptions';
-import { parseTokenInfo, TaprootPayment } from '../../common/utils';
-import { BlockHeader, TokenInfo } from '../../common/types';
-import { TokenMintEntity } from '../../entities/tokenMint.entity';
 // import { getGuardContractInfo } from '@cat-protocol/cat-smartcontracts';
 import { LRUCache } from 'lru-cache';
-import {TokenStatisticsEntity} from "../../entities/tokenstatistics.entity";
+import { TokenStatisticsEntity } from "../../entities/tokenstatistics.entity";
 
 @Injectable()
 export class JobService {
@@ -85,41 +68,41 @@ export class JobService {
         const tokenHolder = await queryRunner.manager.query(holderSql, []);
 
         const tokenHolders = new Map();
-        for(var i =0;i < getTokenMintTotal.length;i++){
+        for (var i = 0; i < getTokenMintTotal.length; i++) {
           var tokenInfo = getTokenMintTotal[i]
-          tokenHolders.set(tokenInfo.tokenkey,tokenInfo);
+          tokenHolders.set(tokenInfo.tokenkey, tokenInfo);
         }
 
-        for(var i =0;i < tokenHolder.length;i++){
+        for (var i = 0; i < tokenHolder.length; i++) {
           var tHolder = tokenHolder[i]
           var tokenInfo = tokenHolders.get(tHolder.tokenkey)
           const newToken = {
             ...tokenInfo,
             holders: tHolder.holders
           };
-          tokenHolders.set(tHolder.tokenkey,newToken);
+          tokenHolders.set(tHolder.tokenkey, newToken);
         }
 
 
         console.log("start insert ...");
 
-        for(var i =0;i < history.length;i++){
-           var tokenInfo = history[i]
+        for (var i = 0; i < history.length; i++) {
+          var tokenInfo = history[i]
 
           const tokenHolderMint = tokenHolders.get(tokenInfo.token_pubkey);
-           if (!tokenHolderMint){
-             console.log('get',tokenHolderMint,"tokenInfo.token_pubkey",tokenInfo.token_pubkey)
-           }
-           var mint = 0;
+          if (!tokenHolderMint) {
+            console.log('get', tokenHolderMint, "tokenInfo.token_pubkey", tokenInfo.token_pubkey)
+          }
+          var mint = 0;
           var holders = 0;
-            if (tokenHolderMint) {
-              mint = tokenHolderMint.amount;
-              if (tokenHolderMint.holders){
-                holders = tokenHolderMint.holders;
-              }
+          if (tokenHolderMint) {
+            mint = tokenHolderMint.amount;
+            if (tokenHolderMint.holders) {
+              holders = tokenHolderMint.holders;
             }
+          }
 
-           const entiry = new  TokenStatisticsEntity();
+          const entiry = new TokenStatisticsEntity();
           entiry.tokenId = tokenInfo.token_id;
           entiry.tokenName = tokenInfo.raw_info.name;
           entiry.max = tokenInfo.raw_info.max;
