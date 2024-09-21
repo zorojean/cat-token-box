@@ -1,11 +1,9 @@
-import { TokenInfo } from '../common/types';
 import {
   Column,
   CreateDateColumn,
   Entity,
-  Index,
   PrimaryColumn,
-  UpdateDateColumn,
+  UpdateDateColumn
 } from 'typeorm';
 
 @Entity('token_statistics')
@@ -19,11 +17,11 @@ export class TokenStatisticsEntity {
 
 
   @Column()
-  max: number;
+  max: bigint;
 
 
   @Column()
-  mint: number;
+  mint: bigint;
 
   @Column()
   holders: number;
