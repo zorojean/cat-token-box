@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TokenInfoEntity } from '../../entities/tokenInfo.entity';
 import { IsNull, LessThanOrEqual, Repository } from 'typeorm';
+import { Constants } from '../../common/constants';
 import {
   addressToXOnlyPubKey,
   ownerAddressToPubKeyHash,
   xOnlyPubKeyToAddress,
 } from '../../common/utils';
-import { TxOutEntity } from '../../entities/txOut.entity';
-import { Constants } from '../../common/constants';
-import { BlockService } from '../../services/block/block.service';
+import { TokenInfoEntity } from '../../entities/tokenInfo.entity';
 import { TokenStatisticsEntity } from '../../entities/tokenstatistics.entity';
+import { TxOutEntity } from '../../entities/txOut.entity';
+import { BlockService } from '../../services/block/block.service';
 
 @Injectable()
 export class TokenService {
@@ -22,7 +22,7 @@ export class TokenService {
     private readonly txOutRepository: Repository<TxOutEntity>,
     @InjectRepository(TokenStatisticsEntity)
     private readonly tokenStatisticsEntityRepository: Repository<TokenStatisticsEntity>,
-  ) {}
+  ) { }
 
   async listAllTokens(offset: number = 0, limit: number = 10) {
     let sql = `
@@ -134,47 +134,50 @@ export class TokenService {
       return null;
     }
 
-    const result = await this.tokenInfoRepository.query(
-      `
-      WITH token_supply AS (
-        SELECT 
-          token_pubkey,
-          COALESCE(SUM(token_amount), 0) AS supply
-        FROM token_mint
-        WHERE token_pubkey = $1
-        GROUP BY token_pubkey
-      ),
-      token_holders AS (
-        SELECT 
-          xonly_pubkey,
-          COUNT(DISTINCT owner_pkh) AS holders
-        FROM tx_out
-        WHERE spend_txid IS NULL AND xonly_pubkey = $1
-        GROUP BY xonly_pubkey
-      )
-      SELECT
-        token.decimals AS "decimals",
-        token.genesis_txid AS "genesisTxid",
-        token.raw_info AS "info",
-        token.minter_pubkey AS "minterPubKey",
-        token.name AS "name",
-        token.symbol AS "symbol",
-        token.reveal_txid AS "revealTxid",
-        token.reveal_height AS "revealHeight",
-        token.token_pubkey AS "tokenPubKey",
-        token.token_id AS "tokenId",
-        COALESCE(ts.supply, 0) AS "supply",
-        COALESCE(th.holders, 0) AS "holders"
-      FROM
-        token_info token
-      LEFT JOIN token_supply ts ON ts.token_pubkey = token.token_pubkey
-      LEFT JOIN token_holders th ON th.xonly_pubkey = token.token_pubkey
-      WHERE token.token_pubkey = $1 OR token.token_id = $2
-      `,
-      [tokenInfo.tokenPubKey, tokenInfo.tokenId],
-    );
+    const result = await this.tokenStatisticsEntityRepository.query('select * from token_statistics where token_id=$1', [
+      tokenInfo.tokenId
+    ]);
+    // const result = await this.tokenInfoRepository.query(
+    //   `
+    //   WITH token_supply AS (
+    //     SELECT 
+    //       token_pubkey,
+    //       COALESCE(SUM(token_amount), 0) AS supply
+    //     FROM token_mint
+    //     WHERE token_pubkey = $1
+    //     GROUP BY token_pubkey
+    //   ),
+    //   token_holders AS (
+    //     SELECT 
+    //       xonly_pubkey,
+    //       COUNT(DISTINCT owner_pkh) AS holders
+    //     FROM tx_out
+    //     WHERE spend_txid IS NULL AND xonly_pubkey = $1
+    //     GROUP BY xonly_pubkey
+    //   )
+    //   SELECT
+    //     token.decimals AS "decimals",
+    //     token.genesis_txid AS "genesisTxid",
+    //     token.raw_info AS "info",
+    //     token.minter_pubkey AS "minterPubKey",
+    //     token.name AS "name",
+    //     token.symbol AS "symbol",
+    //     token.reveal_txid AS "revealTxid",
+    //     token.reveal_height AS "revealHeight",
+    //     token.token_pubkey AS "tokenPubKey",
+    //     token.token_id AS "tokenId",
+    //     COALESCE(ts.supply, 0) AS "supply",
+    //     COALESCE(th.holders, 0) AS "holders"
+    //   FROM
+    //     token_info token
+    //   LEFT JOIN token_supply ts ON ts.token_pubkey = token.token_pubkey
+    //   LEFT JOIN token_holders th ON th.xonly_pubkey = token.token_pubkey
+    //   WHERE token.token_pubkey = $1 OR token.token_id = $2
+    //   `,
+    //   [tokenInfo.tokenPubKey, tokenInfo.tokenId],
+    // );
     return {
-      ...this.renderTokenInfo(result[0]),
+      ...this.renderTokenInfo(tokenInfo),
       supply: parseInt(result[0].supply, 10),
       holders: parseInt(result[0].holders, 10),
     };
@@ -385,8 +388,8 @@ export class TokenService {
   }
 
   async getTokenList(
-      offset: number,
-      limit: number,
+    offset: number,
+    limit: number,
   ) {
 
     const sql = `select * from token_statistics order by holders desc limit $1 offset $2;`;
@@ -395,14 +398,14 @@ export class TokenService {
 
     const history = await this.tokenStatisticsEntityRepository.query(sql, [
       Math.min(
-          limit || Constants.QUERY_PAGING_DEFAULT_LIMIT,
-          Constants.QUERY_PAGING_MAX_LIMIT,
+        limit || Constants.QUERY_PAGING_DEFAULT_LIMIT,
+        Constants.QUERY_PAGING_MAX_LIMIT,
       ),
       offset || Constants.QUERY_PAGING_DEFAULT_OFFSET,
     ]);
 
     var tokenList = [];;
-    for(var i =0;i < history.length; i++){
+    for (var i = 0; i < history.length; i++) {
       const token = history[i]
       const where = { tokenId: token.token_id };
       const tokenInfo = await this.tokenInfoRepository.findOne({

@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
-import { TokenService } from './token.service';
-import { okResponse, errorResponse } from '../../common/utils';
 import { ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { errorResponse, okResponse } from '../../common/utils';
+import { TokenService } from './token.service';
 
 @Controller('tokens')
 export class TokenController {
@@ -102,7 +102,7 @@ export class TokenController {
   async getTokenInfo(@Param('tokenIdOrTokenAddr') tokenIdOrTokenAddr: string) {
     try {
       const tokenInfo =
-        await this.tokenService.getTokenInfoByTokenIdOrTokenAddress(
+        await this.tokenService.getTokenInfoByTokenIdOrTokenAddressDisplay(
           tokenIdOrTokenAddr,
         );
       return okResponse(tokenInfo);
