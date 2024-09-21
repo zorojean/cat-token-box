@@ -1,28 +1,28 @@
+import { getGuardContractInfo } from '@cat-protocol/cat-smartcontracts';
 import { Injectable, Logger } from '@nestjs/common';
-import { TxEntity } from '../../entities/tx.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import {
+  crypto,
+  payments,
+  Transaction,
+  TxInput,
+  TxOutput,
+} from 'bitcoinjs-lib';
+import { LRUCache } from 'lru-cache';
 import {
   DataSource,
   EntityManager,
   MoreThanOrEqual,
   Repository,
 } from 'typeorm';
-import {
-  payments,
-  Transaction,
-  TxInput,
-  TxOutput,
-  crypto,
-} from 'bitcoinjs-lib';
-import { TxOutEntity } from '../../entities/txOut.entity';
-import { InjectRepository } from '@nestjs/typeorm';
 import { Constants } from '../../common/constants';
-import { TokenInfoEntity } from '../../entities/tokenInfo.entity';
 import { CatTxError } from '../../common/exceptions';
-import { parseTokenInfo, TaprootPayment } from '../../common/utils';
 import { BlockHeader, TokenInfo } from '../../common/types';
+import { parseTokenInfo, TaprootPayment } from '../../common/utils';
+import { TokenInfoEntity } from '../../entities/tokenInfo.entity';
 import { TokenMintEntity } from '../../entities/tokenMint.entity';
-// import { getGuardContractInfo } from '@cat-protocol/cat-smartcontracts';
-import { LRUCache } from 'lru-cache';
+import { TxEntity } from '../../entities/tx.entity';
+import { TxOutEntity } from '../../entities/txOut.entity';
 
 @Injectable()
 export class TxService {
@@ -46,14 +46,14 @@ export class TxService {
     @InjectRepository(TxEntity)
     private txEntityRepository: Repository<TxEntity>,
   ) {
-    // const guardContractInfo = getGuardContractInfo();
-    // this.GUARD_PUBKEY = guardContractInfo.tpubkey;
-    // this.TRANSFER_GUARD_SCRIPT_HASH =
-    //   guardContractInfo.contractTaprootMap.transfer.contractScriptHash;
-    // this.logger.log(`guard xOnlyPubKey = ${this.GUARD_PUBKEY}`);
-    // this.logger.log(
-    //   `guard transferScriptHash = ${this.TRANSFER_GUARD_SCRIPT_HASH}`,
-    // );
+    const guardContractInfo = getGuardContractInfo();
+    this.GUARD_PUBKEY = guardContractInfo.tpubkey;
+    this.TRANSFER_GUARD_SCRIPT_HASH =
+      guardContractInfo.contractTaprootMap.transfer.contractScriptHash;
+    this.logger.log(`guard xOnlyPubKey = ${this.GUARD_PUBKEY}`);
+    this.logger.log(
+      `guard transferScriptHash = ${this.TRANSFER_GUARD_SCRIPT_HASH}`,
+    );
   }
 
   /**

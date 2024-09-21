@@ -1,14 +1,14 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { sleep } from '../../common/utils';
-import { RpcService } from '../rpc/rpc.service';
-import { BlockEntity } from '../../entities/block.entity';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, MoreThanOrEqual, Repository } from 'typeorm';
 import { Block } from 'bitcoinjs-lib';
-import { TxService } from '../tx/tx.service';
-import { BlockHeader } from '../../common/types';
+import { DataSource, MoreThanOrEqual, Repository } from 'typeorm';
 import { Constants } from '../../common/constants';
+import { BlockHeader } from '../../common/types';
+import { sleep } from '../../common/utils';
+import { BlockEntity } from '../../entities/block.entity';
+import { RpcService } from '../rpc/rpc.service';
+import { TxService } from '../tx/tx.service';
 
 @Injectable()
 export class BlockService implements OnModuleInit {
@@ -28,9 +28,9 @@ export class BlockService implements OnModuleInit {
   }
 
   async onModuleInit() {
-    // await this.processForceReindex();
-    // this.daemonProcessBlocks();
-    // this.logger.log('daemon process blocks initialized');
+    await this.processForceReindex();
+    this.daemonProcessBlocks();
+    this.logger.log('daemon process blocks initialized');
   }
 
   /**
