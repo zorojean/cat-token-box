@@ -106,7 +106,7 @@ export class JobService {
           entiry.tokenId = tokenInfo.token_id;
           entiry.tokenName = tokenInfo.raw_info.name;
           entiry.max = tokenInfo.raw_info.max;
-          entiry.mint = BigInt(mint);
+          entiry.mint = mint.toString();
           entiry.holders = holders;
           await this.tokenStatisticsEntityRepository.save(entiry);
         }

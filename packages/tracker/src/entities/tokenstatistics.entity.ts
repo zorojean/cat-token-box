@@ -16,12 +16,12 @@ export class TokenStatisticsEntity {
   tokenName: string;
 
 
-  @Column()
-  max: bigint;
+  @Column({ type: 'bigint' })
+  max: string;
 
 
-  @Column()
-  mint: bigint;
+  @Column({ type: 'bigint' })
+  mint: string;
 
   @Column()
   holders: number;
