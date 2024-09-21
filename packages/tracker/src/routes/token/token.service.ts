@@ -178,7 +178,7 @@ export class TokenService {
     // );
     return {
       ...this.renderTokenInfo(tokenInfo),
-      supply: parseInt(result[0].supply, 10),
+      supply: parseInt(result[0].mint, 10),
       holders: parseInt(result[0].holders, 10),
     };
   }

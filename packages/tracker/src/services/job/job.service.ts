@@ -59,7 +59,7 @@ export class JobService {
 
         console.log("start get token mint amount...");
 
-        const mintSql = 'select token_pubkey as tokenkey,SUM(token_amount)  as amount  from token_mint group by token_pubkey'
+        const mintSql = 'select token_pubkey as tokenkey,COALESCE(SUM(token_amount), 0)  as amount  from token_mint group by token_pubkey'
         const getTokenMintTotal = await queryRunner.manager.query(mintSql, []);
 
         console.log("start get token holders amount...");
