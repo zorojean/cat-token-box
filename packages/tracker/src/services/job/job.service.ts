@@ -28,22 +28,24 @@ export class JobService {
     @InjectRepository(TokenStatisticsEntity)
     private tokenStatisticsEntityRepository: Repository<TokenStatisticsEntity>,
   ) {
-    // const guardContractInfo = getGuardContractInfo();
-    // this.GUARD_PUBKEY = guardContractInfo.tpubkey;
-    // this.TRANSFER_GUARD_SCRIPT_HASH =
-    //   guardContractInfo.contractTaprootMap.transfer.contractScriptHash;
-    // this.logger.log(`guard xOnlyPubKey = ${this.GUARD_PUBKEY}`);
-    // this.logger.log(
-    //   `guard transferScriptHash = ${this.TRANSFER_GUARD_SCRIPT_HASH}`,
-    // );
   }
 
   async onModuleInit() {
+    // this.daemonProcessBlocks();
     await this.countCat();
     this.logger.log('start job');
   }
 
 
+  // private async daemonProcessBlocks() {
+  //   while (true) {
+  //     try {
+  //       await this.countCat();
+  //     } catch (e) {
+  //       this.logger.error(`daemon process blocks error, ${e.message}`);
+  //     }
+  //   }
+  // }
   /**
    */
   private async countCat() {
@@ -51,20 +53,16 @@ export class JobService {
     await queryRunner.connect();
     const task = async () => {
       try {
-        console.log("job run ...");
+        this.logger.log("job run ...");
         const sql = `select * from token_info where token_pubkey is not null;`;
         const history = await queryRunner.manager.query(sql, []);
 
-
-
-        console.log("start get token mint amount...");
-
+        this.logger.log("start get token mint amount...");
         const mintSql = 'select token_pubkey as tokenkey,COALESCE(SUM(token_amount), 0)  as amount  from token_mint group by token_pubkey'
         const getTokenMintTotal = await queryRunner.manager.query(mintSql, []);
 
-        console.log("start get token holders amount...");
-
-        const holderSql = 'select xonly_pubkey as tokenkey,COUNT(DISTINCT owner_pkh) as holders from tx_out where spend_txid is null  GROUP BY xonly_pubkey ;';
+        this.logger.log("start get token holders amount...");
+        const holderSql = 'select xonly_pubkey as tokenkey,COUNT(DISTINCT owner_pkh) as holders,count(spend_txid) as utxos_count from tx_out where spend_txid is null  GROUP BY xonly_pubkey ;';
         const tokenHolder = await queryRunner.manager.query(holderSql, []);
 
         const tokenHolders = new Map();
@@ -84,19 +82,21 @@ export class JobService {
         }
 
 
-        console.log("start insert ...");
+        this.logger.log("start insert ...");
 
         for (var i = 0; i < history.length; i++) {
           var tokenInfo = history[i]
 
           const tokenHolderMint = tokenHolders.get(tokenInfo.token_pubkey);
           if (!tokenHolderMint) {
-            console.log('get', tokenHolderMint, "tokenInfo.token_pubkey", tokenInfo.token_pubkey)
+            this.logger.log('get', tokenHolderMint, "tokenInfo.token_pubkey", tokenInfo.token_pubkey)
           }
           var mint = 0;
           var holders = 0;
+          var utxosCount = 0;
           if (tokenHolderMint) {
             mint = tokenHolderMint.amount;
+            utxosCount = tokenHolderMint.utxos_count;
             if (tokenHolderMint.holders) {
               holders = tokenHolderMint.holders;
             }
@@ -108,16 +108,16 @@ export class JobService {
           entiry.max = tokenInfo.raw_info.max;
           entiry.mint = mint.toString();
           entiry.holders = holders;
+          entiry.utxosCount = utxosCount.toString();
           await this.tokenStatisticsEntityRepository.save(entiry);
         }
-        console.log("job end ...");
+        this.logger.log("job end ...");
 
       } catch (error) {
-        console.error('job error:', error);
+        this.logger.error('job error:', error);
       }
     };
 
-    await task();
     const intervalId = setInterval(task, 600000);
   }
 

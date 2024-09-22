@@ -39,17 +39,17 @@ export class MinterService {
     const trackerBlockHeight =
       await this.blockService.getLastProcessedBlockHeight();
     const tokenInfo =
-      await this.tokenService.getTokenInfoByTokenIdOrTokenAddress(
+      await this.tokenService.getTokenStatisticsInfoByTokenIdOrTokenAddress(
         tokenIdOrTokenAddr,
-      );
-    let count = 0;
-    if (trackerBlockHeight !== null && tokenInfo?.minterPubKey) {
-      count = await this.txOutRepository.query('select count(spend_txid) from tx_out where xonly_pubkey =$1 and spend_txid is null', [{
-        xOnlyPubKey: tokenInfo.minterPubKey,
-      }]);
-    }
+      ); 
+    // let count = 0;
+    // if (trackerBlockHeight !== null && tokenInfo?.minterPubKey) {
+    //   count = await this.txOutRepository.query('select count(spend_txid) from tx_out where xonly_pubkey =$1 and spend_txid is null', [{
+    //     xOnlyPubKey: tokenInfo.minterPubKey,
+    //   }]);
+    // }
     return {
-      count,
+      count: tokenInfo.utxosCount,
       trackerBlockHeight,
     };
   }

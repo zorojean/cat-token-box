@@ -114,6 +114,13 @@ export class TokenService {
     return this.renderTokenInfo(tokenInfo);
   }
 
+  async getTokenStatisticsInfoByTokenIdOrTokenAddress(tokenIdOrTokenAddr: string) {
+    const result = await this.tokenStatisticsEntityRepository.query('select * from token_statistics where token_id=$1 ', [
+      tokenIdOrTokenAddr
+    ]);
+    return result;
+  }
+
   async getTokenInfoByTokenIdOrTokenAddressDisplay(tokenIdOrTokenAddr: string) {
     let where;
     if (tokenIdOrTokenAddr.includes('_')) {
@@ -134,9 +141,7 @@ export class TokenService {
       return null;
     }
 
-    const result = await this.tokenStatisticsEntityRepository.query('select * from token_statistics where token_id=$1', [
-      tokenInfo.tokenId
-    ]);
+    const result = this.getTokenStatisticsInfoByTokenIdOrTokenAddress
     // const result = await this.tokenInfoRepository.query(
     //   `
     //   WITH token_supply AS (
