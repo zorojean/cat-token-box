@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { TokenService } from '../token/token.service';
 import { InjectRepository } from '@nestjs/typeorm';
-import { TxOutEntity } from '../../entities/txOut.entity';
 import { IsNull, LessThanOrEqual, Repository } from 'typeorm';
 import { Constants } from '../../common/constants';
+import { TxOutEntity } from '../../entities/txOut.entity';
 import { BlockService } from '../../services/block/block.service';
+import { TokenService } from '../token/token.service';
 
 @Injectable()
 export class MinterService {
@@ -13,7 +13,7 @@ export class MinterService {
     private readonly tokenService: TokenService,
     @InjectRepository(TxOutEntity)
     private readonly txOutRepository: Repository<TxOutEntity>,
-  ) {}
+  ) { }
 
   async getMinterUtxos(
     tokenIdOrTokenAddr: string,
@@ -35,10 +35,22 @@ export class MinterService {
   }
 
   async getMinterUtxoCount(tokenIdOrTokenAddr: string) {
-    const utxos = await this.queryMinterUtxos(tokenIdOrTokenAddr);
+    // const utxos = await this.queryMinterUtxos(tokenIdOrTokenAddr);
+    const trackerBlockHeight =
+      await this.blockService.getLastProcessedBlockHeight();
+    const tokenInfo =
+      await this.tokenService.getTokenInfoByTokenIdOrTokenAddress(
+        tokenIdOrTokenAddr,
+      );
+    let count = 0;
+    if (trackerBlockHeight !== null && tokenInfo?.minterPubKey) {
+      count = await this.txOutRepository.query('select count(spend_txid) from tx_out where xonly_pubkey =$1 and spend_txid is null', [{
+        xOnlyPubKey: tokenInfo.minterPubKey,
+      }]);
+    }
     return {
-      count: utxos.utxos.length,
-      trackerBlockHeight: utxos.trackerBlockHeight,
+      count,
+      trackerBlockHeight,
     };
   }
 
@@ -69,5 +81,5 @@ export class MinterService {
     return { utxos, trackerBlockHeight: lastProcessedHeight };
   }
 
-  
+
 }
