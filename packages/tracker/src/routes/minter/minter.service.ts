@@ -48,8 +48,9 @@ export class MinterService {
     //     xOnlyPubKey: tokenInfo.minterPubKey,
     //   }]);
     // }
+    
     return {
-      count: tokenInfo.utxosCount,
+      count: tokenInfo.utxos_count,
       trackerBlockHeight,
     };
   }
