@@ -38,7 +38,7 @@ export class MinterService {
     const trackerBlockHeight = await this.blockService.getLastProcessedBlockHeight();
     const tokenStatisticsInfo = await this.tokenService.getTokenStatisticsInfoByTokenIdOrTokenAddress(tokenIdOrTokenAddr);
     return {
-      count: tokenStatisticsInfo.utxosCount,
+      count: tokenStatisticsInfo.utxoCount,
       trackerBlockHeight,
     };
   }

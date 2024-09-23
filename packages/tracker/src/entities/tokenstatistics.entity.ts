@@ -24,8 +24,8 @@ export class TokenStatisticsEntity {
   mint: string;
 
 
-  @Column({ type: 'bigint', name: 'utxos_count' })
-  utxosCount: string;
+  @Column({ type: 'bigint', name: 'utxo_count' })
+  utxoCount: string;
 
   @Column()
   holders: number;

@@ -356,7 +356,6 @@ export class TokenService {
   ) {
 
     const sql = `select * from token_statistics order by holders desc limit $1 offset $2;`;
-    const countSql = `select count(1) from token_statistics`;
     const count = await this.tokenStatisticsEntityRepository.count()
 
     const history = await this.tokenStatisticsEntityRepository.query(sql, [
@@ -379,6 +378,8 @@ export class TokenService {
         info: tokenInfo.rawInfo,
         supply: parseInt(token.mint, 10),
         holders: parseInt(token.holders, 10),
+        utxoCount: parseInt(token.utxoCount, 10),
+        mintUtxoCount: parseInt(token.utxoCount, 10)
       };
       tokenList.push(tokenMint);
     }

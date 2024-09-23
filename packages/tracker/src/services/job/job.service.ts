@@ -62,7 +62,7 @@ export class JobService {
                 const getTokenMintTotal = await queryRunner.manager.query(mintSql, []);
 
                 this.logger.log("start get token holders amount...");
-                const holderSql = 'select xonly_pubkey as tokenkey,COUNT(DISTINCT owner_pkh) as holders,count(DISTINCT xonly_pubkey) as utxos_count from tx_out where spend_txid is null  GROUP BY xonly_pubkey ;';
+                const holderSql = 'select xonly_pubkey as tokenkey,COUNT(DISTINCT owner_pkh) as holders,count(*) as utxo_count from tx_out where spend_txid is null  GROUP BY xonly_pubkey ;';
                 const tokenHolder = await queryRunner.manager.query(holderSql, []);
 
                 const tokenHolders = new Map();
@@ -77,7 +77,7 @@ export class JobService {
                     tokenHolders.set(tHolder.tokenkey, {
                         ...tokenInfo,
                         holders: tHolder.holders,
-                        utxosCount: tHolder.utxos_count
+                        utxoCount: tHolder.utxo_count
                     });
                 }
 
@@ -93,10 +93,10 @@ export class JobService {
                     }
                     var mint = 0;
                     var holders = 0;
-                    var utxosCount = 0;
+                    var utxoCount = 0;
                     if (tokenHolderMint) {
                         mint = tokenHolderMint.amount;
-                        utxosCount = tokenHolderMint.utxosCount;
+                        utxoCount = tokenHolderMint.utxoCount;
                         if (tokenHolderMint.holders) {
                             holders = tokenHolderMint.holders;
                         }
@@ -108,7 +108,7 @@ export class JobService {
                     entiry.max = tokenInfo.raw_info.max;
                     entiry.mint = mint.toString();
                     entiry.holders = holders;
-                    entiry.utxosCount = utxosCount.toString();
+                    entiry.utxoCount = utxoCount.toString();
                     await this.tokenStatisticsEntityRepository.save(entiry);
                 }
                 this.logger.log("job end ...");
