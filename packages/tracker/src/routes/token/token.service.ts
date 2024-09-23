@@ -141,7 +141,7 @@ export class TokenService {
       return null;
     }
 
-    const result = this.getTokenStatisticsInfoByTokenIdOrTokenAddress
+    const result = this.getTokenStatisticsInfoByTokenIdOrTokenAddress(tokenIdOrTokenAddr)
     // const result = await this.tokenInfoRepository.query(
     //   `
     //   WITH token_supply AS (
