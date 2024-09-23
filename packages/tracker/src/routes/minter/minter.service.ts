@@ -35,22 +35,10 @@ export class MinterService {
   }
 
   async getMinterUtxoCount(tokenIdOrTokenAddr: string) {
-    // const utxos = await this.queryMinterUtxos(tokenIdOrTokenAddr);
-    const trackerBlockHeight =
-      await this.blockService.getLastProcessedBlockHeight();
-    const tokenInfo =
-      await this.tokenService.getTokenStatisticsInfoByTokenIdOrTokenAddress(
-        tokenIdOrTokenAddr,
-      ); 
-    // let count = 0;
-    // if (trackerBlockHeight !== null && tokenInfo?.minterPubKey) {
-    //   count = await this.txOutRepository.query('select count(spend_txid) from tx_out where xonly_pubkey =$1 and spend_txid is null', [{
-    //     xOnlyPubKey: tokenInfo.minterPubKey,
-    //   }]);
-    // }
-    
+    const trackerBlockHeight = await this.blockService.getLastProcessedBlockHeight();
+    const tokenStatisticsInfo = await this.tokenService.getTokenStatisticsInfoByTokenIdOrTokenAddress(tokenIdOrTokenAddr);
     return {
-      count: tokenInfo.utxos_count,
+      count: tokenStatisticsInfo.utxosCount,
       trackerBlockHeight,
     };
   }

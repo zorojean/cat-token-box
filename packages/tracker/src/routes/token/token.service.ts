@@ -115,13 +115,25 @@ export class TokenService {
   }
 
   async getTokenStatisticsInfoByTokenIdOrTokenAddress(tokenIdOrTokenAddr: string) {
-    const result = await this.tokenStatisticsEntityRepository.query('select * from token_statistics where token_id=$1 ', [
-      tokenIdOrTokenAddr
-    ]);
+    const result = await this.tokenStatisticsEntityRepository.findOne({ where: this.getQueryTokenWhere(tokenIdOrTokenAddr) });
     return result;
   }
 
   async getTokenInfoByTokenIdOrTokenAddressDisplay(tokenIdOrTokenAddr: string) {
+
+    const tokenInfo = await this.tokenInfoRepository.findOne({ where: this.getQueryTokenWhere(tokenIdOrTokenAddr) });
+    if (!tokenInfo) {
+      return null;
+    }
+    const tokenStatisticsInfo = await this.getTokenStatisticsInfoByTokenIdOrTokenAddress(tokenIdOrTokenAddr)
+    return {
+      ...this.renderTokenInfo(tokenInfo),
+      supply: parseInt(tokenStatisticsInfo.mint, 10),
+      holders: parseInt(tokenStatisticsInfo.holders.toString(), 10),
+    };
+  }
+
+  private getQueryTokenWhere(tokenIdOrTokenAddr: string) {
     let where;
     if (tokenIdOrTokenAddr.includes('_')) {
       where = { tokenId: tokenIdOrTokenAddr };
@@ -132,62 +144,8 @@ export class TokenService {
       }
       where = { tokenPubKey };
     }
-
-    const tokenInfo = await this.tokenInfoRepository.findOne({
-      where,
-    });
-
-    if (!tokenInfo) {
-      return null;
-    }
-
-    const result = this.getTokenStatisticsInfoByTokenIdOrTokenAddress(tokenIdOrTokenAddr)
-    // const result = await this.tokenInfoRepository.query(
-    //   `
-    //   WITH token_supply AS (
-    //     SELECT 
-    //       token_pubkey,
-    //       COALESCE(SUM(token_amount), 0) AS supply
-    //     FROM token_mint
-    //     WHERE token_pubkey = $1
-    //     GROUP BY token_pubkey
-    //   ),
-    //   token_holders AS (
-    //     SELECT 
-    //       xonly_pubkey,
-    //       COUNT(DISTINCT owner_pkh) AS holders
-    //     FROM tx_out
-    //     WHERE spend_txid IS NULL AND xonly_pubkey = $1
-    //     GROUP BY xonly_pubkey
-    //   )
-    //   SELECT
-    //     token.decimals AS "decimals",
-    //     token.genesis_txid AS "genesisTxid",
-    //     token.raw_info AS "info",
-    //     token.minter_pubkey AS "minterPubKey",
-    //     token.name AS "name",
-    //     token.symbol AS "symbol",
-    //     token.reveal_txid AS "revealTxid",
-    //     token.reveal_height AS "revealHeight",
-    //     token.token_pubkey AS "tokenPubKey",
-    //     token.token_id AS "tokenId",
-    //     COALESCE(ts.supply, 0) AS "supply",
-    //     COALESCE(th.holders, 0) AS "holders"
-    //   FROM
-    //     token_info token
-    //   LEFT JOIN token_supply ts ON ts.token_pubkey = token.token_pubkey
-    //   LEFT JOIN token_holders th ON th.xonly_pubkey = token.token_pubkey
-    //   WHERE token.token_pubkey = $1 OR token.token_id = $2
-    //   `,
-    //   [tokenInfo.tokenPubKey, tokenInfo.tokenId],
-    // );
-    return {
-      ...this.renderTokenInfo(tokenInfo),
-      supply: parseInt(result[0].mint, 10),
-      holders: parseInt(result[0].holders, 10),
-    };
+    return where;
   }
-
   renderTokenInfo(tokenInfo: TokenInfoEntity) {
     if (!tokenInfo) {
       return null;
