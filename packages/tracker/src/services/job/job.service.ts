@@ -74,11 +74,11 @@ export class JobService {
         for (var i = 0; i < tokenHolder.length; i++) {
           var tHolder = tokenHolder[i]
           var tokenInfo = tokenHolders.get(tHolder.tokenkey)
-          const newToken = {
+          tokenHolders.set(tHolder.tokenkey, {
             ...tokenInfo,
-            holders: tHolder.holders
-          };
-          tokenHolders.set(tHolder.tokenkey, newToken);
+            holders: tHolder.holders,
+            utxosCount: tHolder.utxos_count
+          });
         }
 
 
@@ -96,7 +96,7 @@ export class JobService {
           var utxosCount = 0;
           if (tokenHolderMint) {
             mint = tokenHolderMint.amount;
-            utxosCount = tokenHolderMint.utxos_count;
+            utxosCount = tokenHolderMint.utxosCount;
             if (tokenHolderMint.holders) {
               holders = tokenHolderMint.holders;
             }
